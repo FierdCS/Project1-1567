@@ -14,18 +14,20 @@ def joystickCallback(data):
     RT = data.axes[5] # gas peddle
     a_button = data.buttons[0] #go backwards
     left_stick = data.axes[0] #left stick
-    b_button = data.buttons[1] #b button
+    b_button = data.buttons[1] #b button, smoother toggle
     LT = data.axes[2] #brake
 
     #new for project 1
 
     y_button = data.buttons[3] # for sport or eco
     
+    smoother = True
 
 
 
-    if(b_button ==1):
-        rospy.signal_shutdown("Emergency Stop!!!")
+    if(b_button ==1):#smoother toggle, if onit publishes to smoother else publish to command
+        smoother = not smoother
+        
     if(a_button == 1):
         
             if(RT <0.2):
@@ -53,8 +55,10 @@ def joystickCallback(data):
         command.linear.x = 0.0
         command.angular.z = 0.0
 
-    
-    pub.publish(command)
+    if(smoother):
+        smootherPub.publish(command)
+    else:
+        pub.publish(command)
 
 def cleanUp():
     global pub, command
