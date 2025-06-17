@@ -4,7 +4,9 @@ import rospy
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
 
-pub = rospy.Publisher("/mobile_base/commands/velocity", Twist, queue_size=10)
+robotpub = rospy.Publisher("/robot_twist", Twist, queue_size=10)
+smootherPub = rospy.Publisher("/robot_commands", INT[],)#these means we are publishing DOWN to smoother
+
 command = Twist()
 
 def joystickCallback(data):
@@ -14,20 +16,22 @@ def joystickCallback(data):
     RT = data.axes[5] # gas peddle
     a_button = data.buttons[0] #go backwards
     left_stick = data.axes[0] #left stick
-    b_button = data.buttons[1] #b button, smoother toggle
     LT = data.axes[2] #brake
 
     #new for project 1
 
-    y_button = data.buttons[3] # for sport or eco
+    #bumper_button= data.buttons[] # whichever button for bumper
+    #backward_button= data.buttons[] # whichever button for backward only
     
-    smoother = True
+    #other button = data.buttons[] #for led
+    #y_button = data.buttons[3] # for emergency brake
+    b_button = data.buttons[1] #b button, smoother toggle
 
+    
 
-
-    if(b_button ==1):#smoother toggle, if onit publishes to smoother else publish to command
-        smoother = not smoother
-        
+    eco_mode= 1 #eco is default 1, 0 is off, 2 is sport
+    smoother_com = [1, 1, 1, 0, 1] # by default, bumper, backward, LEDS, emergency brake, smoothing mode
+    
     if(a_button == 1):
         
             if(RT <0.2):
@@ -55,10 +59,13 @@ def joystickCallback(data):
         command.linear.x = 0.0
         command.angular.z = 0.0
 
-    if(smoother):
-        smootherPub.publish(command)
-    else:
-        pub.publish(command)
+    
+    robotpub.publish(command)#twist
+        
+
+
+    smootherPub.publish(smoother_com)#array
+    
 
 def cleanUp():
     global pub, command
