@@ -90,10 +90,10 @@ def cleanUp():
     rospy.sleep(1)
 
 def remoteController():
-    rospy.init_node("remoteControl", anonymous=True)
+    rospy.init_node("joy_controller", anonymous=True)
     rospy.Subscriber("joy", Joy, joystickCallback)
+    
     rospy.on_shutdown(cleanUp)
-
 
     rospy.spin()
 
