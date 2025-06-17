@@ -6,11 +6,12 @@ from geometry_msgs.msg import Twist
 
 robotpub = rospy.Publisher("/robot_twist", Twist, queue_size=10)
 smootherPub = rospy.Publisher("/robot_commands", INT[],)#these means we are publishing DOWN to smoother
+smoother_com = [1, 1, 1, 0, 1] # by default, bumper, backward, LEDS, emergency brake, smoothing mode
 
 command = Twist()
 
 def joystickCallback(data):
-    global pub, command
+    global robotpub, smootherPub, command, smoother_com
     
     
     RT = data.axes[5] # gas peddle
@@ -20,18 +21,23 @@ def joystickCallback(data):
 
     #new for project 1
 
-    #bumper_button= data.buttons[] # whichever button for bumper
-    #backward_button= data.buttons[] # whichever button for backward only
+    bumper_button= data.buttons[8] #POWER BUTTON
+    backward_button= data.buttons[5] # RIGHT BUTTON
     
-    #other button = data.buttons[] #for led
-    y_button = data.buttons[3] # for smoother toggle
+    LED_button = data.buttons[7] #for led START BUTTON
+    smoother_button = data.buttons[3] # for smoother toggle Y
     b_button = data.buttons[1] #b button emergency brake
 
     
     
-    eco_mode= 1 #eco is default 1, 0 is off, 2 is sport
-    smoother_com = [1, 1, 1, 0, 1] # by default, bumper, backward, LEDS, emergency brake, smoothing mode
+    #eco is default 1, 0 is off, 2 is sport
     
+    if(bumper_button):
+        smoother_com[0] ^= 1
+    if(backward_button):
+        smoother_button[1] ^= 1
+    if(LED_button):
+        smoother_button[2] ^= 1
     if(y_button==1):
         if(smoother_com[4]>1):
             smoother_com[4]=0
