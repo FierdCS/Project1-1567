@@ -1,0 +1,99 @@
+#!/usr/bin/env python
+
+import rospy
+import math
+from std_msgs.msg import Float32
+from geometry_msgs.msg import Twist
+
+velocityPub = rospy.publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+Led1Pub = rospy.publisher('/mobile_base/commands/led1', Led, queue_size=1)
+Led2Pub = rospy.publisher('/mobile_base/commands/led2', Led, queue_size=1)
+soundPub = rospy.publisher('/mobile_base/commands/sound', Sound, queue_size=1)
+
+
+pub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+command = Twist()
+eco_mode = True
+sport_mode = False
+off_mode = False
+emergency_brake = False
+bumper_hit = False
+
+preventCollision = False
+
+
+def commandCallback(data):
+    global bumperActivated, backwards, leds, emergency_brake, smootherMode
+
+    bumperActivated = bool(data.data[0])
+    backwards = bool(data.data[1])
+    leds = bool(data.data[2])
+    emergency_brake = bool(data.data[3])
+    smootherMode = bool(data.data[4])
+
+
+
+def bumperCallback(data):
+    global bumper_hit, front, left, right, preventCollision
+    if not bumperActivated:
+        return
+    else:
+        if data.bumper == 0:
+            if(data.state== 1):
+                left = 1
+            else:
+                left = 0
+        elif data.bumper == 1:
+            if(data.state == 1):
+                front = 1
+            else:
+                front = 0
+        elif data.bumper == 2:
+            if(data.state == 1):
+                right = 1
+            else:
+                right = 0
+
+        if(left+right+front>0):
+            emergencyBrakeCallback(1)
+            preventCollision = True #can only back up no forward movement
+
+
+def emergencyBrakeCallback(data):
+    global emergency_brake
+    emergency_brake = data.data
+
+
+target = 0.0
+
+def modeCallback(data):
+    global target #array
+    target = data.data[4]
+
+def main():
+    rospy.init_node("smoother", anonymous = True)
+    #subscribers
+    rospy.Subscribe('/robot_twist', Twist, twistCallback)
+    rospy.Subscribe('/robot_commands', Int32MultiArray, commandCallback)
+    rospy.Subscribe('/mobile_base/events/bumper', BumperEvent, bumperCallback)
+    rospy.Subscribe('/movile_base/events/cliff', CliffEvent, cliffCallback)
+    rospy.Subscribe('/mobile_base/events/wheel_drop', WheelDropEvent, wheelDropCallback)
+    rospu.spin()
+    current = 0
+    rate = rospy.Rate(100)
+    while not rospy.is_shutdown():
+
+        if math.fabs(target - current) > 0.0001:
+            if target > current:
+                current += .01
+            else:
+                current -= .01
+        print(current)
+        rate.sleep()
+
+
+if __name__ == '__main__':
+    main()
+
+
+
