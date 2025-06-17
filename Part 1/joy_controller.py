@@ -24,20 +24,29 @@ def joystickCallback(data):
     #backward_button= data.buttons[] # whichever button for backward only
     
     #other button = data.buttons[] #for led
-    #y_button = data.buttons[3] # for emergency brake
-    b_button = data.buttons[1] #b button, smoother toggle
+    y_button = data.buttons[3] # for smoother toggle
+    b_button = data.buttons[1] #b button emergency brake
 
     
-
+    
     eco_mode= 1 #eco is default 1, 0 is off, 2 is sport
     smoother_com = [1, 1, 1, 0, 1] # by default, bumper, backward, LEDS, emergency brake, smoothing mode
     
+    if(y_button==1):
+        if(smoother_com[4]>1):
+            smoother_com[4]=0
+        else:
+            smoother_com[4]+=1
+            
+    if(b_button ==1):
+        smoother_com[3] =1
+        
     if(a_button == 1):
         
-            if(RT <0.2):
-                command.linear.x = -0.8
-            else:
-                command.linear.x = -1+RT
+        if(RT <0.2):
+            command.linear.x = -0.8
+        else:
+            command.linear.x = -1+RT
        
         
     else :#a is not pressed
