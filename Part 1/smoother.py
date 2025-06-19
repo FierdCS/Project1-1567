@@ -11,11 +11,8 @@ Led2Pub = rospy.publisher('/mobile_base/commands/led2', Led, queue_size=1)
 soundPub = rospy.publisher('/mobile_base/commands/sound', Sound, queue_size=1)
 
 
-pub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
 command = Twist()
-eco_mode = True
-sport_mode = False
-off_mode = False
+
 emergency_brake = False
 bumper_hit = False
 
@@ -55,13 +52,13 @@ def bumperCallback(data):
                 right = 0
 
         if(left+right+front>0):
-            emergencyBrakeCallback(1)
+            emergency_brake()
             preventCollision = True #can only back up no forward movement
 
 
-def emergencyBrakeCallback(data):
+def emergencyBrake():
     global emergency_brake
-    emergency_brake = data.data
+    command
 
 
 target = 0.0
