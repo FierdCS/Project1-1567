@@ -31,11 +31,18 @@ def commandCallback(data):#armon wang me
 
     #if not emergency brake
 
+    
+            
+
     #else
 
 
     velocicityPub.publish(command)
 
+def twistCallback(data):#HAS A TWIST ITEM
+
+
+    if(data.linear.x >0 ):
 
 
 def bumperCallback(data):

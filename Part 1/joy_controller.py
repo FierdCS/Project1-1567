@@ -9,10 +9,10 @@ robotpub = rospy.Publisher("/robot_twist", Twist, queue_size=10)
 smootherPub = rospy.Publisher("/robot_commands", Int32MultiArray, queue_size=10)#these means we are publishing DOWN to smoother
 smoother_com = [1, 1, 1, 0, 1] # by default, bumper, backward, LEDS, emergency brake, smoothing mode
 
-command = Twist()
+twist = Twist()
 
 def joystickCallback(data):
-    global robotpub, smootherPub, command, smoother_com
+    global robotpub, smootherPub, twist, smoother_com
     
     
     RT = data.axes[5] # gas peddle
@@ -50,23 +50,23 @@ def joystickCallback(data):
         
     if(a_button == 1):
         if(RT <0.2):
-            command.linear.x = -0.8
+            twist.linear.x = -0.8
         else:
-            command.linear.x = -1+RT
+            twist.linear.x = -1+RT
        
         
     else :#a is not pressed
         if(RT < 0.2): #max speed
-            command.linear.x = 0.8
+            twist.linear.x = 0.8
         else:   #a is not pressed plus not pulled down 80%
-            command.linear.x = 1-RT
+            twist.linear.x = 1-RT
         
 
     #if we hold a 
     
     
     
-    command.angular.z = left_stick  #left is 1 , right is -1
+    twist.angular.z = left_stick  #left is 1 , right is -1
     
     
     #if(LT <=0.5):
@@ -74,7 +74,7 @@ def joystickCallback(data):
         #command.angular.z = 0.0
 
     
-    robotpub.publish(command)#twist
+    robotpub.publish(twist)#twist
     smootherPub.publish(smoother_com)#array
     
 
