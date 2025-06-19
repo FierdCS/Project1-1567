@@ -47,7 +47,7 @@ def twistCallback(data):#HAS A TWIST ITEM wang me
         command.linear.x = 0
         command.angular.z = 0
 
-
+    
 
 
     #process angular and linear
