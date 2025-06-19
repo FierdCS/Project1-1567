@@ -2,50 +2,124 @@
 
 import rospy
 import math
+from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
 from std_msgs.msg import Empty, Float32
+from std_msgs.msg import Empty
 
 
+curX = 0
+curY = 0
+curDeg = 0
+initX = 0
+initY = 0
+initDeg = 0
 
-def drive(speed, distance):
-    rospy.init_node("controller", anonymous=True)
-    pub1 = rospy.Publisher('velocity', Float32, queue_size = 1)
+velocityPub
+resetOdomPub
 
-    rospy.init_node("controller", anonymous=True)
-    pub2 = rospy.Publisher('reset_odometry', Float32, queue_size = 1)
 
-    rospy.init_node("controller", anonymous = True)
-    rospy.Subscriber('odom', Float32, smootherCallback)
+class move:
+    def __init__(self, type, speed, dist):
+        self.type = type
+        self.speed = speed
+        self.dist = dist
+
+def executeMoves(moves):
+    for move in moves:
+        if move.type == "T":
+            turn(move.speed, move.dist)
+        else:
+            turn(move.speed, move.dist)
+
+def resetOdom():
+    global initX,initY,initDeg
+    resetOdomPub.publish(Empty())
+    initX = curX
+    initY = curY
+    initDeg = curDeg
+        
+def odomCallback(data):
+    global curX,curY,curDeg
+    q = [data.pose.pose.orientation.x,
+    data.pose.pose.orientation.y,
+    data.pose.pose.orientation.z,
+    data.pose.pose.orientation.w]
+    roll, pitch, yaw = euler_from_quaternion(q)
+
+    curDeg = yaw * 180 / math.pi
+    curX = data.pose.pose.position.x
+    curY = data.pose.pose.position.y
     
 
+def drive(speed, distance):
+    resetOdom()
+    command = Twist()
+    rate = rospy.Rate(10)
+    current_speed = 0.0
+    direction = 1 if speed > 0 else -1
+
+    command.linear.x = 0.0
+    command.angular.z = 0.0
+    velocityPub.publish(command)
+
+    while not rospy.is_shutdown():
+        distTravelled = math.sqrt((curX - initX)**2 + (curY-initY)**2)
+        distRemaining = distance - distTravelled
+        if abs(distRemaining) > 0.01: #if close enough to target distance stop robot
+            command.linear.x = 0.0
+            velocityPub.publish(command)
+            break
+        
+        if current_speed*direction < speed*direction:
+            current_speed += 0.01 * direction
+            current_speed = min(abs(speed), abs(current_speed)) * direction
+
+        if(distRemaining < abs(current_speed)):
+            current_speed = distRemaining * max(direction, 0.05)
+        
+        command.linear.x = current_speed
+        command.angular.z = 0.0
+        velocityPub.publish(command)
+        rate.sleep()
+        
+
+
 def turn(speed, degrees):
-    rospy.init_node("controller", anonymous=True)
-    pub1 = rospy.Publisher('velocity', Float32, queue_size = 1)
-
-    rospy.init_node("controller", anonymous=True)
-    pub2 = rospy.Publisher('reset_odometry', Float32, queue_size = 1)
-
-
-    rospy.init_node("controller", anonymous = True)
-    rospy.Subscriber('odom', Float32, smootherCallback)
+    pass
 
 def controller():
-    while not rospy.is_shutdown():
-        print("Move Format t(turn)/d(drive), speed, amount. Ex. 'd, 0.8, 1.5'")
-        move = input("Enter your move: ")
-        parts = move.split(", ")
+    global velocityPub, resetOdomPub
+    
+    rospy.init_node("controller", anonymous=True)
+    velocityPub = rospy.Publisher('velocity', Twist, queue_size=10)
+    resetOdomPub = rospy.Publisher('reset_odometry', Empty, queue_size=10)
+    rospy.Subscriber('/odom', Odometry, odomCallback)
 
-        if(parts[0] == 'd'):
-            drive(float(parts[1]), float(parts[2]))
-        elif (parts[0] == 't'):
-            turn(float(parts[1]), float(parts[2]))
-        else:
-            print("invalid option, enter t or d")
-        
+
+    moves = []
+    print("Enter moves in format:'T, 0.5, 90'(turn) or 'D, 0.8, 3'(drive) '0.0'(end)")
+    while True:
+        curMove = input("Enter Move: ").strip()
+        if curMove == "0.0":
+            break
+        parts = [part for part in curMove.split(",")]
+        curType = parts[0].strip().upper()
+        curSpeed = float(parts[1].strip())
+        curDist = float(parts[2].strip())
+        newMove = move(curType,curSpeed,curDist)
+        moves.append(newMove)
+
+    if moves: 
+        rospy.sleep(10)#time to set up the robot
+        executeMoves(moves)   
+    else:
+        print("no moves to execute")   
 
 if __name__ == '__main__':
     try:
         controller()
     except rospy.ROSInterruptException:
         pass
+    
