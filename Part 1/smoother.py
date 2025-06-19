@@ -14,6 +14,7 @@ soundPub = rospy.publisher('/mobile_base/commands/sound', Sound, queue_size=1)
 command = Twist()
 
 emergency_brake = False
+backwards = True
 
 
 preventCollision = False
@@ -39,13 +40,15 @@ def commandCallback(data):#armon wang me
 
     
 
-def twistCallback(data):#HAS A TWIST ITEM
+def twistCallback(data):#HAS A TWIST ITEM wang me
 
 
-    if(data.linear.x >0 ):
+    if(data.linear.x >0 and preventCollision and backwards):
+        command.linear.x = 0
+        command.angular.z = 0
 
 
-    
+    #process angular and linear
     
     
     velocicityPub.publish(command)
