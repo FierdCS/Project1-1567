@@ -46,8 +46,33 @@ def twistCallback(data):#HAS A TWIST ITEM wang me
     if(data.linear.x >0 and preventCollision and backwards):
         command.linear.x = 0
         command.angular.z = 0
+    #based on mode what do we do?
+    else:
+        if smootherMode == 0:
+            command.linear.x = data.linear.x
+            command.angular.z = data.angular.z
+        elif smootherMode == 1:
+            #smoother mode, we will do a linear interpolation
+            #between the current and target velocity
+            target = data.linear.x
+            if math.fabs(target - command.linear.x) > 0.0001:
+                if target > command.linear.x:
+                    command.linear.x += 0.03
+                else:
+                    command.linear.x -= 0.03
+            command.angular.z = data.angular.z
+        
+        elif smootherMode == 2:
+            #smoother mode, we will do a linear interpolation
+            #between the current and target velocity
+            target = data.linear.x
+            if math.fabs(target - command.linear.x) > 0.0001:
+                if target > command.linear.x:
+                    command.linear.x += 0.08
+                else:
+                    command.linear.x -= 0.08
+            command.angular.z = data.angular.z
 
-    
 
 
     #process angular and linear
