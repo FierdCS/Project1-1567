@@ -26,7 +26,7 @@ def commandCallback(data):#armon wang me
     backwards = bool(data.data[1])
     leds = bool(data.data[2])
     emergency_brake = bool(data.data[3])
-    smootherMode = data.data[4]
+    smootherMode = data.data[4]#0, 1, or 2
 
 
     #if not emergency brake
