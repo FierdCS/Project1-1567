@@ -14,12 +14,12 @@ soundPub = rospy.publisher('/mobile_base/commands/sound', Sound, queue_size=1)
 command = Twist()
 
 emergency_brake = False
-bumper_hit = False
+
 
 preventCollision = False
 
 
-def commandCallback(data):
+def commandCallback(data):#armon wang me 
     global bumperActivated, backwards, leds, emergency_brake, smootherMode, command
 
     bumperActivated = bool(data.data[0])
@@ -27,6 +27,11 @@ def commandCallback(data):
     leds = bool(data.data[2])
     emergency_brake = bool(data.data[3])
     smootherMode = bool(data.data[4])
+
+
+    #if not emergency brake
+
+    #else
 
 
     velocicityPub.publish(command)
@@ -59,16 +64,21 @@ def bumperCallback(data):
             preventCollision = True #can only back up no forward movement
 
 
-def emergencyBrake():
+def emergencyBrake():#armon
     global emergency_brake
     command
 
 
 target = 0.0
 
-def modeCallback(data):
+def driveMode():#ewang me, smoother mode
     global target #array
     target = data.data[4]
+
+def cliffCallback(data): # wang me
+
+def wheelDropEvent(data): #wang me armon
+
 
 def main():
     rospy.init_node("smoother", anonymous = True)
