@@ -20,13 +20,16 @@ preventCollision = False
 
 
 def commandCallback(data):
-    global bumperActivated, backwards, leds, emergency_brake, smootherMode
+    global bumperActivated, backwards, leds, emergency_brake, smootherMode, command
 
     bumperActivated = bool(data.data[0])
     backwards = bool(data.data[1])
     leds = bool(data.data[2])
     emergency_brake = bool(data.data[3])
     smootherMode = bool(data.data[4])
+
+
+    velocicityPub.publish(command)
 
 
 
