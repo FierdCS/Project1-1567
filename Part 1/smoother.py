@@ -37,12 +37,18 @@ def commandCallback(data):#armon wang me
     #else
 
 
-    velocicityPub.publish(command)
+    
 
 def twistCallback(data):#HAS A TWIST ITEM
 
 
     if(data.linear.x >0 ):
+
+
+    
+    
+    
+    velocicityPub.publish(command)
 
 
 def bumperCallback(data):
