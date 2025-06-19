@@ -16,8 +16,8 @@ initX = 0
 initY = 0
 initDeg = 0
 
-velocityPub
-resetOdomPub
+velocityPub = None
+resetOdomPub = None
 
 
 class move:
@@ -31,7 +31,7 @@ def executeMoves(moves):
         if move.type == "T":
             turn(move.speed, move.dist)
         else:
-            turn(move.speed, move.dist)
+            drive(move.speed, move.dist)
 
 def resetOdom():
     global initX,initY,initDeg
@@ -67,17 +67,17 @@ def drive(speed, distance):
     while not rospy.is_shutdown():
         distTravelled = math.sqrt((curX - initX)**2 + (curY-initY)**2)
         distRemaining = distance - distTravelled
-        if abs(distRemaining) > 0.01: #if close enough to target distance stop robot
+        if abs(distRemaining) <= 0.01: #if close enough to target distance stop robot
             command.linear.x = 0.0
             velocityPub.publish(command)
             break
         
-        if current_speed*direction < speed*direction:
+        if abs(current_speed) < abs(speed):
             current_speed += 0.01 * direction
             current_speed = min(abs(speed), abs(current_speed)) * direction
 
         if(distRemaining < abs(current_speed)):
-            current_speed = distRemaining * max(direction, 0.05)
+            current_speed = direction * max(distRemaining, 0.05)
         
         command.linear.x = current_speed
         command.angular.z = 0.0
@@ -91,10 +91,11 @@ def turn(speed, degrees):
 
 def controller():
     global velocityPub, resetOdomPub
-    
+
+
     rospy.init_node("controller", anonymous=True)
-    velocityPub = rospy.Publisher('velocity', Twist, queue_size=10)
-    resetOdomPub = rospy.Publisher('reset_odometry', Empty, queue_size=10)
+    velocityPub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+    resetOdomPub = rospy.Publisher('/mobile_base/commands/reset_odometry', Empty, queue_size=10)
     rospy.Subscriber('/odom', Odometry, odomCallback)
 
 
