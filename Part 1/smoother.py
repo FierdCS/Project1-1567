@@ -15,7 +15,7 @@ command = Twist()
 
 emergency_brake = False
 backwards = True
-
+smootherMOde = 1
 
 preventCollision = False
 
@@ -46,6 +46,8 @@ def twistCallback(data):#HAS A TWIST ITEM wang me
     if(data.linear.x >0 and preventCollision and backwards):
         command.linear.x = 0
         command.angular.z = 0
+
+
 
 
     #process angular and linear
