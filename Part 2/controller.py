@@ -51,6 +51,7 @@ def odomCallback(data):
     curDeg = yaw * 180 / math.pi
     curX = data.pose.pose.position.x
     curY = data.pose.pose.position.y
+
     
 
 def drive(speed, distance):
@@ -69,21 +70,25 @@ def drive(speed, distance):
         distRemaining = distance - distTravelled
         if abs(distRemaining) <= 0.01: #if close enough to target distance stop robot
             command.linear.x = 0.0
+            command.angular.z = 0.0
+            rospy.sleep(0.5)  # Allow time for the command to be processed
             velocityPub.publish(command)
             break
         
         if abs(current_speed) < abs(speed):
-            current_speed += 0.01 * direction
+            current_speed += 0.04 * direction
             current_speed = min(abs(speed), abs(current_speed)) * direction
 
         if(distRemaining < abs(current_speed)):
-            current_speed = direction * max(distRemaining, 0.05)
+            current_speed = direction * distRemaining
         
         command.linear.x = current_speed
         command.angular.z = 0.0
+      
         velocityPub.publish(command)
+        print("Current Position: X: {}, Y: {}, Degrees: {}".format(curX, curY, curDeg))
         rate.sleep()
-        
+       
 
 
 def turn(speed, degrees):
@@ -102,21 +107,22 @@ def controller():
     moves = []
     print("Enter moves in format:'T, 0.5, 90'(turn) or 'D, 0.8, 3'(drive) '0.0'(end)")
     while True:
-        curMove = input("Enter Move: ").strip()
+        curMove = raw_input("Enter Move: ").strip()
         if curMove == "0.0":
             break
         parts = [part for part in curMove.split(",")]
         curType = parts[0].strip().upper()
-        curSpeed = float(parts[1].strip())
+        curSpeed = float(parts[1].strip()) 
         curDist = float(parts[2].strip())
         newMove = move(curType,curSpeed,curDist)
         moves.append(newMove)
 
     if moves: 
-        rospy.sleep(10)#time to set up the robot
+        rospy.sleep(4)#time to set up the robot
         executeMoves(moves)   
     else:
         print("no moves to execute")   
+    rospy.spin() 
 
 if __name__ == '__main__':
     try:
