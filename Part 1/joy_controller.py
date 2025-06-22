@@ -18,7 +18,7 @@ def joystickCallback(data):
     RT = data.axes[5] # gas peddle
     a_button = data.buttons[0] #go backwards
     left_stick = data.axes[0] #left stick
-    LT = data.axes[2] #brake
+    #LT = data.axes[2] #brake
 
     #new for project 1
 
@@ -39,7 +39,7 @@ def joystickCallback(data):
         smoother_button[1] ^= 1
     if(LED_button):
         smoother_button[2] ^= 1
-    if(y_button==1):
+    if(smoother_button==1):
         if(smoother_com[4]>1):
             smoother_com[4]=0
         else:
@@ -47,7 +47,7 @@ def joystickCallback(data):
             
     if(b_button ==1):
         smoother_com[3] =1
-    else if(b_button==0):
+    elif(b_button==0):
         smoother_com[3] = 0
         
     if(a_button == 1):

@@ -183,11 +183,11 @@ def main():
             command.angular.z = 0
         else:
             if smootherMode == 0:
-                rospy.loginfo("Normal mode active")
+                rospy.loginfo("OFF MODE")
                 command.linear.x = target.linear.x
                 command.angular.z = target.angular.z
             elif smootherMode == 1:
-                rospy.loginfo("Eco mode active")
+                rospy.loginfo("ECO MODE")
                 if abs(target.linear.x - command.linear.x) > 0.0001:
                     if target.linear.x > command.linear.x:
                         command.linear.x += 0.03
@@ -195,7 +195,7 @@ def main():
                         command.linear.x -= 0.03
                 command.angular.z = target.angular.z
             elif smootherMode == 2:
-                rospy.loginfo("Sport mode active")
+                rospy.loginfo("SPORT MODE")
                 if abs(target.linear.x - command.linear.x) > 0.0001:
                     if target.linear.x > command.linear.x:
                         command.linear.x += 0.08
