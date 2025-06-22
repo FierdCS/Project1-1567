@@ -85,24 +85,28 @@ def bumperCallback(data):
 
 def cliffCallback(data):
     global cliffLeft, cliffRight, cliffFront, onlyBackwards
-
+    
+    
     if data.sensor == 0:
-        if data.state == 0:
-            cliffLeft = 0
-        else:
+        if data.state == 1:
             cliffLeft = 1
+        else:
+            cliffLeft = 0
     elif data.sensor == 1:
-        if data.state == 0:
-            cliffFront = 0
-        else:
+        if data.state == 1:
             cliffFront = 1
-    else:
-        if data.state == 0:
-            cliffRight = 0
         else:
+            cliffFront = 0
+    else:
+        if data.state == 1:
             cliffRight = 1
-
+        else:
+            cliffRight = 0
+    
+    
+    # Check if any cliff sensor is triggered
     if (cliffLeft + cliffRight + cliffFront) > 0:
+        rospy.loginfo("CLIFF DETECTED - EMERGENCY BRAKE ACTIVATED")
         emergencyBrake()
         onlyBackwards = True
     else:
@@ -110,19 +114,25 @@ def cliffCallback(data):
 
 def wheelDropCallback(data):
     global wheelDropLeft, wheelDropRight, onlyBackwards
-
+    
+    # Log the wheel drop status
     if data.wheel == 0:
         if data.state == 1:
             wheelDropLeft = 1
+            rospy.loginfo("left wheel data")
         else:
             wheelDropLeft = 0
+            rospy.loginfo("right wheel data")
+
     else:
         if data.state == 1:
             wheelDropRight = 1
         else:
             wheelDropRight = 0
-
+        
+    # Check if any wheel is dropped
     if (wheelDropLeft + wheelDropRight) > 0:
+        rospy.loginfo("WHEEL DROPPED - EMERGENCY BRAKE ACTIVATED")
         emergencyBrake()
         onlyBackwards = True
     else:
@@ -143,8 +153,8 @@ def main():
     rospy.Subscriber('/robot_twist', Twist, twistCallback)
     rospy.Subscriber('/robot_commands', Int32MultiArray, commandCallback)
     rospy.Subscriber('/mobile_base/events/bumper', BumperEvent, bumperCallback)
-    rospy.Subscriber('/mobile_base/commands/cliff', CliffEvent, cliffCallback)
-    rospy.Subscriber('/mobile_base/commands/wheel_drop', WheelDropEvent, wheelDropCallback)
+    rospy.Subscriber('/mobile_base/events/cliff', CliffEvent, cliffCallback)
+    rospy.Subscriber('/mobile_base/events/wheel_drop', WheelDropEvent, wheelDropCallback)
 
     rospy.loginfo("Waiting for /mobile_base/commands/velocity subscribers...")
     stop_cmd = Twist()
