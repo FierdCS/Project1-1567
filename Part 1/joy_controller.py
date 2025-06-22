@@ -66,10 +66,12 @@ def joystickCallback(data):
     
     twist.angular.z = left_stick  #left is 1 , right is -1
     
+    command_msg = Int32MultiArray()
+    command_msg.data = smoother_com
 
     
     robotpub.publish(twist)#twist
-    smootherPub.publish(smoother_com)#array
+    smootherPub.publish(command_msg)#array
     
 
 def cleanUp():
