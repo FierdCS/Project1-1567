@@ -5,6 +5,7 @@ import math
 from std_msgs.msg import Int32MultiArray
 from geometry_msgs.msg import Twist
 from kobuki_msgs.msg import BumperEvent, Led, Sound
+from kobuki_msgs.msg import WheelDropEvent 
 
 # Publishers
 velocityPub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
@@ -100,6 +101,20 @@ def cliffCallback(data): #may be some errors in this callback need to fix
         
         
 def wheelDropCallback(data):
+    global onlyBackwards, LeftWheel, RightWheel
+    if data.wheel == 0: #left wheel
+        if data.state == 0: #raised
+            LeftWheel= 1 # 1 means raised here
+        else:
+            LeftWheel = 0
+            onlyBackwards= True
+    else:
+        if data.state == 0:
+            RightWheel= 1
+        else:
+            RightWheel = 0# dropped
+            onlyBackwards= True
+    
 
 def main():
     rospy.init_node("smoother", anonymous=True)
