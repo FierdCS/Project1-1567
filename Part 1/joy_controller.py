@@ -36,9 +36,9 @@ def joystickCallback(data):
     if(bumper_button):
         smoother_com[0] ^= 1
     if(backward_button):
-        smoother_button[1] ^= 1
+        smoother_com[1] ^= 1
     if(LED_button):
-        smoother_button[2] ^= 1
+        smoother_com[2] ^= 1
     if(smoother_button==1):
         if(smoother_com[4]>1):
             smoother_com[4]=0
