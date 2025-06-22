@@ -150,16 +150,12 @@ def main():
         velocityPub.publish(stop_cmd)
         rospy.sleep(0.1)
 
-    if leds:
-        led_msg = Led()
-        led_msg.value = Led.GREEN
-        Led1Pub.publish(led_msg)
-        Led2Pub.publish(led_msg)
+    
 
-    if not emergency_brake:
-        sound_msg = Sound()
-        sound_msg.value = Sound.ON
-        soundPub.publish(sound_msg)
+    # if not emergency_brake:
+    #     sound_msg = Sound()
+    #     sound_msg.value = Sound.ON
+    #     soundPub.publish(sound_msg)
 
     rate = rospy.Rate(100)  # 10 ms
     while not rospy.is_shutdown():
