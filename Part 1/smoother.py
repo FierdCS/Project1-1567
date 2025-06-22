@@ -45,6 +45,7 @@ def commandCallback(data):
     emergency_brake = bool(data.data[3])
     smootherMode = data.data[4]
     received_command = True
+    
 
 def twistCallback(data):
     global target, received_command
@@ -78,7 +79,7 @@ def bumperCallback(data):
 
     if (bumperLeft + bumperRight + bumperFront) > 0:
         emergencyBrake()
-        onlyBackwards = True
+        onlyBackwards = True 
     else:
         onlyBackwards = False
 
@@ -129,12 +130,13 @@ def wheelDropCallback(data):
 
 def emergencyBrake():
     global command
+    rospy.loginfo("EBRAKE")
     command.linear.x = 0.0
     command.angular.z = 0.0
     velocityPub.publish(command)
 
 def main():
-    global command, smootherMode, received_command, target, onlyBackwards
+    global command, smootherMode, received_command, target, onlyBackwards, emergency_brake
 
     rospy.init_node("smoother", anonymous=True)
 
@@ -169,14 +171,22 @@ def main():
     #     sound_msg.value = Sound.ON
     #     soundPub.publish(sound_msg)
 
-    rate = rospy.Rate(100)  # 10 ms
+    rate = rospy.Rate(10)  # 10 ms
     while not rospy.is_shutdown():
+        if emergency_brake:  # Emergency brake takes highest priority
+            rospy.loginfo("EBRAKE PRESSED")
+            command.linear.x = 0.0
+            command.angular.z = 0.0
+            velocityPub.publish(command)
+            rate.sleep()
+            continue
         if not received_command:
             command.linear.x = 0.0
             command.angular.z = 0.0
             velocityPub.publish(command)
             rate.sleep()
             continue
+        
 
         if target.linear.x > 0 and onlyBackwards and backwards:
             command.linear.x = 0
@@ -198,9 +208,9 @@ def main():
                 rospy.loginfo("SPORT MODE")
                 if abs(target.linear.x - command.linear.x) > 0.0001:
                     if target.linear.x > command.linear.x:
-                        command.linear.x += 0.08
+                        command.linear.x += 0.06
                     else:
-                        command.linear.x -= 0.08
+                        command.linear.x -= 0.06
                 command.angular.z = target.angular.z
 
         velocityPub.publish(command)
