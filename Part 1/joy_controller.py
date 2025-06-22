@@ -18,7 +18,7 @@ def joystickCallback(data):
     RT = data.axes[5] # gas peddle
     a_button = data.buttons[0] #go backwards
     left_stick = data.axes[0] #left stick
-    #LT = data.axes[2] #brake
+    
 
     #new for project 1
 
@@ -63,17 +63,9 @@ def joystickCallback(data):
         else:   #a is not pressed plus not pulled down 80%
             twist.linear.x = 1-RT
         
-
-    #if we hold a 
-    
-    
     
     twist.angular.z = left_stick  #left is 1 , right is -1
     
-    
-    #if(LT <=0.5):
-        #command.linear.x = 0.0
-        #command.angular.z = 0.0
 
     
     robotpub.publish(twist)#twist
