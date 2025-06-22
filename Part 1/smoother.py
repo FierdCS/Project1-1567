@@ -97,6 +97,8 @@ def cliffCallback(data): #may be some errors in this callback need to fix
         onlyBackwards = True
     else:
         onlyBackwards = False
+        
+        
 def wheelDropCallback(data):
 
 def main():

@@ -47,6 +47,8 @@ def joystickCallback(data):
             
     if(b_button ==1):
         smoother_com[3] =1
+    else if(b_button==0):
+        smoother_com[3] = 0
         
     if(a_button == 1):
         if(RT <0.2):
