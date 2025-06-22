@@ -111,12 +111,12 @@ def wheelDropCallback(data):
     global wheelDropLeft, wheelDropRight, onlyBackwards
 
     if data.wheel == 0:
-        if data.state == 0:
+        if data.state == 1:
             wheelDropLeft = 1
-        else
+        else:
             wheelDropLeft = 0
     else:
-        if data.state == 0:
+        if data.state == 1:
             wheelDropRight = 1
         else:
             wheelDropRight = 0
@@ -134,7 +134,7 @@ def emergencyBrake():
     velocityPub.publish(command)
 
 def main():
-    global command
+    global command, smootherMode, received_command, target, onlyBackwards
 
     rospy.init_node("smoother", anonymous=True)
 
@@ -187,11 +187,17 @@ def main():
                 command.angular.z = target.angular.z
             elif smootherMode == 1:
                 if abs(target.linear.x - command.linear.x) > 0.0001:
-                    command.linear.x += 0.03 if target.linear.x > command.linear.x else -0.03
+                    if target.linear.x > command.linear.x:
+                        command.linear.x += 0.03
+                    else:
+                        command.linear.x -= 0.03
                 command.angular.z = target.angular.z
             elif smootherMode == 2:
                 if abs(target.linear.x - command.linear.x) > 0.0001:
-                    command.linear.x += 0.08 if target.linear.x > command.linear.x else -0.08
+                    if target.linear.x > command.linear.x:
+                        command.linear.x += 0.08
+                    else:
+                        command.linear.x -= 0.08
                 command.angular.z = target.angular.z
 
         velocityPub.publish(command)
