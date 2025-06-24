@@ -147,7 +147,7 @@ def turn(speed, degrees):
         rate.sleep()
 
 def joystickCallback(data):
-
+    global moveMode
     cross_horizontal = data.axes[6]  
     cross_vertical = data.axes[7] 
     print("cross_horizontal: {}, cross_vertical: {}".format(cross_horizontal, cross_vertical))
@@ -171,17 +171,22 @@ def controller():
     
     while not rospy.is_shutdown():
         if(moveMode==0):
-            sleep(0.5)
+            print("move mode 0")
+            rospy.sleep(0.5)
         if(moveMode == 1):
+            print("move mode 1")
             drive(0.5, 1.0)
         elif(moveMode == 2):
+            print("move mode 2")
             drive(-0.5, 1.0)
         elif(moveMode== 3):
+            print("move mode 3")
             turn(0.5, 90)
         elif(moveMode ==4):
+            print("move mode 4")
             turn(-0.5, 90)         
     
-    rospy.spin()
+    
 
 
 
