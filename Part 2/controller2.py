@@ -18,7 +18,9 @@ initDeg = 0
 velocityPub = None
 resetOdomPub = None
 
-isMoving = False
+moveMode = 0
+
+
 
 
 class move:
@@ -51,8 +53,7 @@ def odomCallback(data):
 
 def drive(speed, distance):
     resetOdom()
-    global isMoving 
-    isMoving= True
+    global moveMode
     command = Twist()
     rate = rospy.Rate(10)
     current_speed = 0.0
@@ -70,7 +71,7 @@ def drive(speed, distance):
             command.angular.z = 0.0
             rospy.sleep(0.5)  
             velocityPub.publish(command)
-            isMoving = False
+            moveMode = 0
             break
         
         if abs(current_speed) < abs(speed):
@@ -100,8 +101,8 @@ def handleWrap(angle1, angle2):
 
 def turn(speed, degrees):
     resetOdom()
-    global isMoving
-    isMoving = True
+    global moveMode
+    
     command = Twist()
     rate = rospy.Rate(10)
     current_speed = 0.0
@@ -127,7 +128,7 @@ def turn(speed, degrees):
             command.angular.z = 0.0
             velocityPub.publish(command)
             rospy.sleep(0.5)
-            isMoving = False
+            moveMode = 0
             break
         
         if abs(current_speed) < abs(speed):
@@ -146,30 +147,40 @@ def turn(speed, degrees):
         rate.sleep()
 
 def joystickCallback(data):
-    global isMoving
-    if isMoving:
-        return
+
     cross_horizontal = data.axes[6]  
-    cross_vertical = data.axes[7]
+    cross_vertical = data.axes[7] 
     print("cross_horizontal: {}, cross_vertical: {}".format(cross_horizontal, cross_vertical))
     if(cross_vertical > 0.7 and abs(cross_vertical) > abs(cross_horizontal)): #drive forward 1m
-        drive(0.5, 1.0)
+        moveMode =1 #move forward
     elif(cross_vertical < -0.7 and abs(cross_vertical) > abs(cross_horizontal)): #drive backward 1m
-        drive(-0.5, 1.0)
+        moveMode = 2
     elif(cross_horizontal > 0.7 and abs(cross_vertical) < abs(cross_horizontal)): #turn left 90 degrees
-        turn(0.5, 90)
+        moveMode= 3
     elif(cross_horizontal < -0.7 and abs(cross_vertical) < abs(cross_horizontal)): #turn right 90 degrees
-        turn(-0.5, 90)         
-    
+        moveMode = 4
     
 
 def controller():
-    global velocityPub, resetOdomPub
+    global velocityPub, resetOdomPub, moveMode
     rospy.init_node("controller", anonymous=True)
     velocityPub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
     resetOdomPub = rospy.Publisher('/mobile_base/commands/reset_odometry', Empty, queue_size=10)
     rospy.Subscriber('/odom', Odometry, odomCallback)
     rospy.Subscriber("/joy", Joy, joystickCallback)
+    
+    while not rospy.is_shutdown():
+        if(moveMode==0):
+            sleep(0.5)
+        if(moveMode == 1):
+            drive(0.5, 1.0)
+        elif(moveMode == 2):
+            drive(-0.5, 1.0)
+        elif(moveMode== 3):
+            turn(0.5, 90)
+        elif(moveMode ==4):
+            turn(-0.5, 90)         
+    
     rospy.spin()
 
 
