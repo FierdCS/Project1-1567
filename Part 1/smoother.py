@@ -46,6 +46,20 @@ def commandCallback(data):
     smootherMode = data.data[4]
     received_command = True
     
+    eb_text = "Engaged" if emergency_brake else "Disengaged"
+    mode_text = "Eco"
+    if (int(smootherMode) == 0):
+        mode_text = "Off"
+    elif (int(smootherMode) == 1):
+        mode_text = "Eco"
+    else: #mode = 2
+        mode_text = "Sport"
+
+    rospy.loginfo(f"Bumper:\t\t\t{bumperActivated}")
+    rospy.loginfo(f"Backward Only:\t\t{backwards}")
+    rospy.loginfo(f"LED and Sound:\t\t{leds}")
+    rospy.loginfo(f"Emergency Brake:\t\t{eb_text}")
+    rospy.loginfo(f"Smoothing Mode:\t\t\t{mode_text}")
 
 def twistCallback(data):
     global target, received_command
@@ -203,11 +217,9 @@ def main():
             command.angular.z = 0
         else:
             if smootherMode == 0:
-                rospy.loginfo("OFF MODE")
                 command.linear.x = target.linear.x
                 command.angular.z = target.angular.z
             elif smootherMode == 1:
-                rospy.loginfo("ECO MODE")
                 if abs(target.linear.x - command.linear.x) > 0.0001:
                     if target.linear.x > command.linear.x:
                         command.linear.x += 0.03
@@ -215,7 +227,6 @@ def main():
                         command.linear.x -= 0.03
                 command.angular.z = target.angular.z
             elif smootherMode == 2:
-                rospy.loginfo("SPORT MODE")
                 if abs(target.linear.x - command.linear.x) > 0.0001:
                     if target.linear.x > command.linear.x:
                         command.linear.x += 0.06
