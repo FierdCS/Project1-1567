@@ -136,7 +136,7 @@ def turn(speed, degrees):
             command.angular.z = 0.0
             velocityPub.publish(command)
             rospy.sleep(0.5)
-            isMoving = False
+            
             break
         
         if abs(current_speed) < abs(speed):
