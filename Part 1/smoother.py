@@ -54,12 +54,14 @@ def commandCallback(data):
         mode_text = "Eco"
     else: #mode = 2
         mode_text = "Sport"
-
-    rospy.loginfo(f"Bumper:\t\t\t{bumperActivated}")
-    rospy.loginfo(f"Backward Only:\t\t{backwards}")
-    rospy.loginfo(f"LED and Sound:\t\t{leds}")
-    rospy.loginfo(f"Emergency Brake:\t\t{eb_text}")
-    rospy.loginfo(f"Smoothing Mode:\t\t\t{mode_text}")
+    
+    print("Bumper: {}".format(bumperActivated))
+    print("Backward Only: {}".format(backwards))
+    print("LED and Sound: {}".format(leds))
+    print("Emergency Brake: {}".format(eb_text))
+    print("Smoothing Mode: {}".format(mode_text))
+    print("----------------------------------------")
+    
 
 def twistCallback(data):
     global target, received_command
