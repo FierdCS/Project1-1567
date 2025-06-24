@@ -99,8 +99,18 @@ def handleWrap(angle1, angle2):
     return diff
 
 
+def handleWrap(angle1, angle2):
+    diff = angle2 - angle1
+    if diff > 180:
+        diff -= 360
+    if diff < -180:
+        diff += 360
+    return diff
+
+
 def turn(speed, degrees):
     resetOdom()
+   
     command = Twist()
     rate = rospy.Rate(10)
     current_speed = 0.0
@@ -110,16 +120,23 @@ def turn(speed, degrees):
     command.angular.z = 0.0
     velocityPub.publish(command)
 
-    target_angle = (initDeg + degrees*direction) % 360
+    target_angle = degrees
+    lastAngle = curDeg
+    curAngle = 0.0
 
     while not rospy.is_shutdown():
-        angleRemaining = handleWrap(curDeg, target_angle)
+        Change = handleWrap(lastAngle, curDeg)
+        curAngle += abs(Change)
+        lastAngle = curDeg
 
-        if abs(angleRemaining) <= 1: 
+        angleRemaining = target_angle - curAngle
+
+        if abs(angleRemaining) <= .3: 
             command.linear.x = 0.0
             command.angular.z = 0.0
             velocityPub.publish(command)
             rospy.sleep(0.5)
+            isMoving = False
             break
         
         if abs(current_speed) < abs(speed):
