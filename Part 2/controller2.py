@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-
 import rospy
-import math
+import math 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
-from std_msgs.msg import Empty, Float32
 from std_msgs.msg import Empty
+from sensor_msgs.msg import Joy
 
 
 curX = 0
@@ -19,6 +18,8 @@ initDeg = 0
 velocityPub = None
 resetOdomPub = None
 
+isMoving = False
+
 
 class move:
     def __init__(self, type, speed, dist):
@@ -26,12 +27,6 @@ class move:
         self.speed = speed
         self.dist = dist
 
-def executeMoves(moves):
-    for move in moves:
-        if move.type == "T":
-            turn(move.speed, move.dist)
-        else:
-            drive(move.speed, move.dist)
 
 def resetOdom():
     global initX,initY,initDeg
@@ -53,10 +48,11 @@ def odomCallback(data):
     curX = data.pose.pose.position.x
     curY = data.pose.pose.position.y
 
-    
 
 def drive(speed, distance):
     resetOdom()
+    global isMoving 
+    isMoving= True
     command = Twist()
     rate = rospy.Rate(10)
     current_speed = 0.0
@@ -71,9 +67,10 @@ def drive(speed, distance):
         distRemaining = distance - distTravelled
         if abs(distRemaining) <= 0.001: 
             command.linear.x = 0.0
-            command.angular.z = 0.0  
+            command.angular.z = 0.0
+            rospy.sleep(0.5)  
             velocityPub.publish(command)
-            rospy.sleep(0.5)
+            isMoving = False
             break
         
         if abs(current_speed) < abs(speed):
@@ -90,6 +87,8 @@ def drive(speed, distance):
         print("Current Position: X: {}, Y: {}, Degrees: {}".format(curX, curY, curDeg))
         rate.sleep()
 
+
+
 def handleWrap(angle1, angle2):
     diff = angle2 - angle1
     if diff > 180:
@@ -101,6 +100,8 @@ def handleWrap(angle1, angle2):
 
 def turn(speed, degrees):
     resetOdom()
+    global isMoving
+    isMoving = True
     command = Twist()
     rate = rospy.Rate(10)
     current_speed = 0.0
@@ -110,16 +111,23 @@ def turn(speed, degrees):
     command.angular.z = 0.0
     velocityPub.publish(command)
 
-    target_angle = (initDeg + degrees*direction) % 360
+    target_angle = degrees
+    lastAngle = curDeg
+    curAngle = 0.0
 
     while not rospy.is_shutdown():
-        angleRemaining = handleWrap(curDeg, target_angle)
+        Change = handleWrap(lastAngle, curDeg)
+        curAngle += abs(Change)
+        lastAngle = curDeg
 
-        if abs(angleRemaining) <= 1: 
+        angleRemaining = target_angle - curAngle
+
+        if abs(angleRemaining) <= .3: 
             command.linear.x = 0.0
             command.angular.z = 0.0
             velocityPub.publish(command)
             rospy.sleep(0.5)
+            isMoving = False
             break
         
         if abs(current_speed) < abs(speed):
@@ -137,38 +145,34 @@ def turn(speed, degrees):
         print("current speed: {}, angle remaining: {}".format(current_speed, angleRemaining))
         rate.sleep()
 
+def joystickCallback(data):
+    global isMoving
+    if isMoving:
+        return
+    cross_horizontal = data.axes[6]  
+    cross_vertical = data.axes[7]
+    print("cross_horizontal: {}, cross_vertical: {}".format(cross_horizontal, cross_vertical))
+    if(cross_vertical > 0.7 and abs(cross_vertical) > abs(cross_horizontal)): #drive forward 1m
+        drive(0.5, 1.0)
+    elif(cross_vertical < -0.7 and abs(cross_vertical) > abs(cross_horizontal)): #drive backward 1m
+        drive(-0.5, 1.0)
+    elif(cross_horizontal > 0.7 and abs(cross_vertical) < abs(cross_horizontal)): #turn left 90 degrees
+        turn(0.5, 90)
+    elif(cross_horizontal < -0.7 and abs(cross_vertical) < abs(cross_horizontal)): #turn right 90 degrees
+        turn(-0.5, 90)         
+    
     
 
 def controller():
     global velocityPub, resetOdomPub
-
-
     rospy.init_node("controller", anonymous=True)
     velocityPub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
     resetOdomPub = rospy.Publisher('/mobile_base/commands/reset_odometry', Empty, queue_size=10)
     rospy.Subscriber('/odom', Odometry, odomCallback)
+    rospy.Subscriber("/joy", Joy, joystickCallback)
+    rospy.spin()
 
 
-
-    moves = []
-    print("Enter moves in format:'T, 0.5, 90'(turn) or 'D, 0.8, 3'(drive) '0.0'(end)")
-    while True:
-        curMove = raw_input("Enter Move: ").strip()
-        if curMove == "0.0":
-            break
-        parts = [part for part in curMove.split(",")]
-        curType = parts[0].strip().upper()
-        curSpeed = float(parts[1].strip()) 
-        curDist = float(parts[2].strip())
-        newMove = move(curType,curSpeed,curDist)
-        moves.append(newMove)
-
-    if moves: 
-        rospy.sleep(2)#time to set up the robot
-        executeMoves(moves)   
-    else:
-        print("no moves to execute")   
-    rospy.spin() 
 
 if __name__ == '__main__':
     try:
