@@ -161,6 +161,32 @@ def emergencyBrake():
     command.angular.z = 0.0
     velocityPub.publish(command)
 
+def flashBackwards():
+    if not leds:
+        return
+    led = Led()
+    sound = Sound()
+    pub_sound = rospy.Publisher('/mobile_base/commands/sound', Sound, queue_size=10)
+    for x in range(3,-1,-1):
+        led.value = x
+        Led1Pub.publish(led)
+        rospy.sleep(0.1)
+        Led2Pub.publish(led)
+    for x in range (0,7):
+        sound.value = x
+        pub_sound.publish(sound)
+
+def changeLEDs(data):
+    led = Led()
+    if data == 0 or not leds: # off
+        led.value = 0 # black
+    elif data == 1: # eco
+        led.value = 1 # green
+    elif data == 2: # sport
+        led.value = 3 # red
+    Led1Pub.publish(led)
+    Led2Pub.publish(led)
+
 def main():
     global command, smootherMode, received_command, target, onlyBackwards, emergency_brake
 
@@ -178,25 +204,6 @@ def main():
         velocityPub.publish(stop_cmd)
         rospy.sleep(0.1)
 
-    
-
-    # if not emergency_brake:
-    #     sound_msg = Sound()
-    #     sound_msg.value = Sound.ON
-    #     soundPub.publish(sound_msg)
-    
-    
-    # if leds:
-    #     led_msg = Led()
-    #     led_msg.value = Led.GREEN
-    #     Led1Pub.publish(led_msg)
-    #     Led2Pub.publish(led_msg)
-
-    # #if not emergency_brake:
-    #     sound_msg = Sound()
-    #     sound_msg.value = Sound.ON
-    #     soundPub.publish(sound_msg)
-
     rate = rospy.Rate(10)  # 10 ms
     while not rospy.is_shutdown():
         if emergency_brake:  # Emergency brake takes highest priority
@@ -213,7 +220,9 @@ def main():
             rate.sleep()
             continue
         
-
+        if target.linear.x < 0 and leds:
+            flashBackwards()
+        
         if target.linear.x > 0 and onlyBackwards and backwards:
             command.linear.x = 0
             command.angular.z = 0
@@ -235,6 +244,7 @@ def main():
                     else:
                         command.linear.x -= 0.06
                 command.angular.z = target.angular.z
+            changeLEDs(smootherMode)
 
         velocityPub.publish(command)
         rate.sleep()
