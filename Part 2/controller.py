@@ -141,10 +141,10 @@ def turn(speed, degrees):
         
         if abs(current_speed) < abs(speed):
             current_speed += 0.04 * direction
-            current_speed = min(abs(speed), abs(current_speed), 0.7) * direction
+            current_speed = min(abs(speed), abs(current_speed), 1) * direction
 
         if(abs(angleRemaining) < 20):
-            current_speed = max(abs(angleRemaining/100), 0.05)* direction
+            current_speed = max(abs(angleRemaining/100), 0.04)* direction
         
         command.linear.x = 0.0
         command.angular.z = current_speed
