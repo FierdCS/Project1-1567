@@ -90,13 +90,6 @@ def drive(speed, distance):
         print("Current Position: X: {}, Y: {}, Degrees: {}".format(curX, curY, curDeg))
         rate.sleep()
 
-def handleWrap(angle1, angle2):
-    diff = angle2 - angle1
-    if diff > 180:
-        diff -= 360
-    if diff < -180:
-        diff += 360
-    return diff
 
 
 def handleWrap(angle1, angle2):
@@ -120,13 +113,13 @@ def turn(speed, degrees):
     command.angular.z = 0.0
     velocityPub.publish(command)
 
-    target_angle = degrees
-    lastAngle = curDeg
-    curAngle = 0.0
+    target_angle = degrees #target angle to turn
+    lastAngle = curDeg #last angle from odom
+    curAngle = 0.0 #tracks cumalitive angle turned
 
     while not rospy.is_shutdown():
-        Change = handleWrap(lastAngle, curDeg)
-        curAngle += abs(Change)
+        Change = handleWrap(lastAngle, curDeg) # change in angle since last time
+        curAngle += abs(Change) 
         lastAngle = curDeg
 
         angleRemaining = target_angle - curAngle

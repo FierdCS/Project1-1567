@@ -112,9 +112,9 @@ def turn(speed, degrees):
     command.angular.z = 0.0
     velocityPub.publish(command)
 
-    target_angle = degrees
-    lastAngle = curDeg
-    curAngle = 0.0
+    target_angle = degrees #target angle to turn
+    lastAngle = curDeg #last angle from odom
+    curAngle = 0.0 #tracks cumalitive angle turned
 
     while not rospy.is_shutdown():
         Change = handleWrap(lastAngle, curDeg)
