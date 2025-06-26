@@ -124,7 +124,7 @@ def turn(speed, degrees):
 
         angleRemaining = target_angle - curAngle
 
-        if abs(angleRemaining) <= .3: 
+        if abs(angleRemaining) <= .5: 
             command.linear.x = 0.0
             command.angular.z = 0.0
             velocityPub.publish(command)
